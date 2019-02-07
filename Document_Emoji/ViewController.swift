@@ -15,16 +15,18 @@ class ViewController: UIViewController ,UIDropInteractionDelegate,UIScrollViewDe
     
     @IBAction func done(_ sender: UIBarButtonItem) {
         save()
-        document?.close()
-        
+        document!.thumbnail = emojiview.snapshot
+        dismiss(animated: true){
+            self.document?.close()
+        }
     }
     
     @IBAction func save(_ sender: UIBarButtonItem? = nil) {
         if let data = emojiart?.json{
-            if let urls = try? FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true){
-                let url = urls.appendingPathComponent("untitled.json")
+            if let urls = try? FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appendingPathComponent("untitled.json"){
+               
                 do{
-                    try data.write(to: url)
+                    try data.write(to: urls)
                     print("s")
                 }catch let error{
                     print("\(error)")
@@ -98,6 +100,7 @@ class ViewController: UIViewController ,UIDropInteractionDelegate,UIScrollViewDe
             collectionView.dataSource = self
             collectionView.dragDelegate = self
             collectionView.dropDelegate = self
+            collectionView.dragInteractionEnabled = true
         }
     }
     

@@ -16,18 +16,18 @@ class DocumentBrowserViewController: UIDocumentBrowserViewController, UIDocument
         delegate = self
         allowsDocumentCreation = false
         allowsPickingMultipleItems = false
-        templates = try? FileManager.default.url(for: .applicationDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-        template = template?.appendingPathComponent("untitled.json")
-        if template != nil{
-            allowsDocumentCreation = FileManager.default.createFile(atPath: template!.absoluteString, contents: Data(), attributes: nil)
+        if UIDevice.current.userInterfaceIdiom == .pad{
+            templates = try? FileManager.default.url(for: .applicationDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appendingPathComponent("untitled.json")
+            if templates != nil{
+                allowsDocumentCreation = FileManager.default.createFile(atPath: templates!.path, contents: Data(), attributes: nil)
+            }
         }
+        
     }
-    
-    var template:URL?
     var templates:URL?
     
     func documentBrowser(_ controller: UIDocumentBrowserViewController, didRequestDocumentCreationWithHandler importHandler: @escaping (URL?, UIDocumentBrowserViewController.ImportMode) -> Void) {
-        importHandler(template,.copy)
+        importHandler(templates,.copy)
     }
     
     func documentBrowser(_ controller: UIDocumentBrowserViewController, didPickDocumentsAt documentURLs: [URL]) {
