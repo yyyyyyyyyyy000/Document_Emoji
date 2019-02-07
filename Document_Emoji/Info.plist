@@ -17,7 +17,7 @@
 			<string>Alternate</string>
 			<key>LSItemContentTypes</key>
 			<array>
-				<string>public.image</string>
+				<string>public.json</string>
 			</array>
 		</dict>
 	</array>
