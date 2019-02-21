@@ -7,25 +7,75 @@
 //
 
 import UIKit
-
-class ViewController: UIViewController ,UIDropInteractionDelegate,UIScrollViewDelegate,UICollectionViewDelegate,UICollectionViewDataSource,UICollectionViewDelegateFlowLayout,UICollectionViewDragDelegate,UICollectionViewDropDelegate{
+import MobileCoreServices
+class ViewController: UIViewController ,UIDropInteractionDelegate,UIScrollViewDelegate,UICollectionViewDelegate,UICollectionViewDataSource,UICollectionViewDelegateFlowLayout,UICollectionViewDragDelegate,UICollectionViewDropDelegate,UIImagePickerControllerDelegate,UINavigationControllerDelegate{
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "modal"{
+            let vc = segue.destination.contents as? DocumentViewController
+            document?.thumbnail = emojiview.snapshot
+            vc?.document = document
+        }else if segue.identifier == "embed"{
+            documentinfo = segue.destination.contents as? DocumentViewController
+        }
+    }
+    
+    @IBAction func takePhoto(_ sender: UIBarButtonItem) {
+        let picker = UIImagePickerController()
+        picker.sourceType = .camera
+        picker.mediaTypes = [kUTTypeImage as String]
+        picker.allowsEditing = true
+        picker.delegate = self
+        present(picker,animated: true)
+    }
+    
+    
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        dismiss(animated:true)
+    }
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        if let image = (info[UIImagePickerController.InfoKey.editedImage] ?? info[UIImagePickerController.InfoKey.originalImage]) as? UIImage{
+            let url = image.storeLocallyAsJPEG(named: String(Date.timeIntervalSinceReferenceDate))
+            backimage = (url,image)
+        }
+        dismiss(animated: true)
+    }
+    
+    
+    @IBOutlet weak var camera: UIBarButtonItem!{
+        didSet{
+            camera.isEnabled = UIImagePickerController.isSourceTypeAvailable(.camera)
+        }
+    }
+    
     
     @IBOutlet weak var Dropzone: UIView!
-    var emojiview = emojiView()
+    lazy var emojiview = emojiView()
     
-    @IBAction func done(_ sender: UIBarButtonItem) {
+    private var documentinfo:DocumentViewController?
+    
+    
+    @IBAction func done(_ sender: UIBarButtonItem? = nil) {
+        NotificationCenter.default.removeObserver(EmojiObserver!)
         save()
         document!.thumbnail = emojiview.snapshot
         dismiss(animated: true){
-            self.document?.close()
+            self.document?.close{success in
+                if let observer = self.DocumentObserver{
+                    NotificationCenter.default.removeObserver(observer)
+                }
+            }
         }
     }
+    @IBAction func returnback(forsegue:UIStoryboardSegue){
+        done()
+    }
+    
     
     @IBAction func save(_ sender: UIBarButtonItem? = nil) {
         if let data = emojiart?.json{
             if let urls = try? FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appendingPathComponent("untitled.json"){
-               
-                do{
+            do{
                     try data.write(to: urls)
                     print("s")
                 }catch let error{
@@ -33,20 +83,41 @@ class ViewController: UIViewController ,UIDropInteractionDelegate,UIScrollViewDe
                 }
             }
         }
+       /*func documenthanged(){
+            document?.emojiart = emojiart
+            if document?.emojiart != nil{
+                document?.updateChangeCount(.done)
+            }
+        }*/
     }
     
     var document:Document?
+    private var DocumentObserver: NSObjectProtocol?
+    private var EmojiObserver: NSObjectProtocol?
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        
+        if document?.documentState != .normal{
+        DocumentObserver = NotificationCenter.default.addObserver(forName:UIDocument.stateChangedNotification, object: document, queue: OperationQueue.main, using: {notification in
+            print("\(self.document!.documentState)")
+            if self.document?.documentState == .normal, let vc = self.documentinfo{
+                vc.document = self.document
+                //self.width1.constant = vc.preferredContentSize.width
+                //self.height1.constant = vc.preferredContentSize.height
+          
+            }
+        })
+        
         document?.open(completionHandler: {success in
             if success{
                 self.title = self.document?.localizedName
                 self.emojiart = self.document?.emojiart
-            }else{
-                
+                self.EmojiObserver = NotificationCenter.default.addObserver(forName: Notification.Name.Emojichanged, object: self.emojiview, queue: OperationQueue.main, using: {notification in
+                    self.save()
+                })
             }
-        })
+        })}
     }
     override func viewDidLoad(){
         super.viewDidLoad()
@@ -85,8 +156,6 @@ class ViewController: UIViewController ,UIDropInteractionDelegate,UIScrollViewDe
         }
     }
     
-    @IBOutlet weak var height: NSLayoutConstraint!
-    @IBOutlet weak var width: NSLayoutConstraint!
     
     func scrollViewDidZoom(_ scrollView: UIScrollView) {
         height.constant = scrollView.contentSize.height
@@ -142,6 +211,17 @@ class ViewController: UIViewController ,UIDropInteractionDelegate,UIScrollViewDe
     
     
     var imagefetcher:ImageFetcher!
+    var suppress = false
+    private func alertaction(for url:URL){
+        if !suppress{
+            let alert = UIAlertController(title: "fail", message: url.absoluteString, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "keep", style: .default, handler: nil))
+        alert.addAction(UIAlertAction(title: "stop", style: .destructive, handler: {action in
+            self.suppress = true}))
+            present(alert,animated: true)
+        }
+        
+    }
     
     
     func dropInteraction(_ interaction: UIDropInteraction, canHandle session: UIDropSession) -> Bool {
@@ -158,7 +238,18 @@ class ViewController: UIViewController ,UIDropInteractionDelegate,UIScrollViewDe
             
         })
         session.loadObjects(ofClass: NSURL.self, completion: {urls in
-            self.imagefetcher.fetch(urls.first as! URL)
+            if let url = urls.first as? URL {
+                DispatchQueue.global(qos: .userInitiated).async {
+                    if let imageData = try? Data(contentsOf: url.imageURL),let image = UIImage(data: imageData){
+                        DispatchQueue.main.async {
+                            self.backimage = (url,image)
+                        }
+                    }else{
+                        self.alertaction(for: url)
+                    }
+                }
+                
+            }
         })
         session.loadObjects(ofClass: UIImage.self, completion: {images in
             self.imagefetcher.backup = images.first as? UIImage
@@ -171,7 +262,9 @@ class ViewController: UIViewController ,UIDropInteractionDelegate,UIScrollViewDe
         return 2
     }
     
+    @IBOutlet weak var height1: NSLayoutConstraint!
     
+    @IBOutlet weak var width1: NSLayoutConstraint!
     
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -279,6 +372,9 @@ class ViewController: UIViewController ,UIDropInteractionDelegate,UIScrollViewDe
         }
     }
     
+    @IBOutlet weak var height: NSLayoutConstraint!
+    
+    @IBOutlet weak var width: NSLayoutConstraint!
     
 }
 

@@ -8,12 +8,25 @@
 
 import UIKit
 
+protocol EmojiviewDelegate: class
+{
+    func emojiviewdidchanged(_ sender:emojiView)
+}
+
+extension Notification.Name{
+    static let Emojichanged = Notification.Name("Emojichanged")
+}
+
+
 class emojiView: UIView,UIDropInteractionDelegate {
     var backgroundimage:UIImage?{
         didSet{
             setNeedsDisplay()
         }
     }
+    
+    weak var delegate:EmojiviewDelegate?
+    
    override func draw(_ rect: CGRect) {
         backgroundimage?.draw(in: bounds)
     }
@@ -40,6 +53,8 @@ class emojiView: UIView,UIDropInteractionDelegate {
             let droppoint = session.location(in: self)
             for attributedString in provider as? [NSAttributedString] ?? []{
                 self.addlabel(at:droppoint,title: attributedString)
+                self.delegate?.emojiviewdidchanged(self)
+                NotificationCenter.default.post(name: .Emojichanged, object: self)
             }
         })
     }

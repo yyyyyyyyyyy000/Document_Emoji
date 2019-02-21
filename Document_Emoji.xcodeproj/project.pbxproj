@@ -19,6 +19,7 @@
 		B516FCFE220B31250001BCB7 /* emojiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B516FCF8220B31250001BCB7 /* emojiView.swift */; };
 		B516FCFF220B31250001BCB7 /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = B516FCF9220B31250001BCB7 /* Utilities.swift */; };
 		B516FD00220B31250001BCB7 /* EmojiCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B516FCFA220B31250001BCB7 /* EmojiCollectionViewCell.swift */; };
+		B516FD0422170F450001BCB7 /* DocumentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B516FD0322170F450001BCB7 /* DocumentViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +37,7 @@
 		B516FCF8220B31250001BCB7 /* emojiView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = emojiView.swift; sourceTree = "<group>"; };
 		B516FCF9220B31250001BCB7 /* Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
 		B516FCFA220B31250001BCB7 /* EmojiCollectionViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EmojiCollectionViewCell.swift; sourceTree = "<group>"; };
+		B516FD0322170F450001BCB7 /* DocumentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,6 +70,7 @@
 		B516FCDD220B30450001BCB7 /* Document_Emoji */ = {
 			isa = PBXGroup;
 			children = (
+				B516FD0322170F450001BCB7 /* DocumentViewController.swift */,
 				B516FCE0220B30450001BCB7 /* DocumentBrowserViewController.swift */,
 				B516FCE4220B30450001BCB7 /* Document.swift */,
 				B516FCE6220B30450001BCB7 /* Main.storyboard */,
@@ -169,6 +172,7 @@
 				B516FCFE220B31250001BCB7 /* emojiView.swift in Sources */,
 				B516FCE1220B30450001BCB7 /* DocumentBrowserViewController.swift in Sources */,
 				B516FCFC220B31250001BCB7 /* emojiArt.swift in Sources */,
+				B516FD0422170F450001BCB7 /* DocumentViewController.swift in Sources */,
 				B516FCFB220B31250001BCB7 /* ViewController.swift in Sources */,
 				B516FCFF220B31250001BCB7 /* Utilities.swift in Sources */,
 				B516FD00220B31250001BCB7 /* EmojiCollectionViewCell.swift in Sources */,
